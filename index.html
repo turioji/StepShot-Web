@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StepShot Web（ローカルテスト版）</title>
+<style>
+  :root {
+    --brand: #2962a8;
+    --brand-dark: #1f4d84;
+    --bg: #f5f6f8;
+    --panel: #ffffff;
+    --border: #dde1e6;
+    --text: #1c2430;
+    --text-muted: #6b7684;
+    --danger: #c94a4a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN",
+                 "Noto Sans JP", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    background: var(--brand);
+    color: white;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  header h1 { font-size: 17px; margin: 0; font-weight: 600; }
+  header .badge {
+    font-size: 11px;
+    background: rgba(255,255,255,0.2);
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+  #help-link {
+    margin-left: auto;
+    color: white;
+    text-decoration: none;
+    font-size: 13px;
+    background: rgba(255,255,255,0.16);
+    padding: 6px 12px;
+    border-radius: 6px;
+  }
+  #help-link:hover { background: rgba(255,255,255,0.28); }
+
+  #app-footer {
+    position: fixed;
+    right: 12px;
+    bottom: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.85);
+    padding: 2px 8px;
+    border-radius: 4px;
+    z-index: 10;
+  }
+  #app-footer a { color: var(--text-muted); }
+  #app-footer a:hover { color: var(--brand); }
+  #app {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    height: calc(100vh - 50px);
+  }
+  #sidebar {
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  #sidebar h2 { font-size: 13px; color: var(--text-muted); text-transform: none; margin: 0 0 10px; }
+  #project-list { list-style: none; padding: 0; margin: 0 0 12px; flex: 1; overflow-y: auto; }
+  #project-list li {
+    padding: 9px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  #project-list li:hover { background: #eef2f7; }
+  #project-list li.active { background: var(--brand); color: white; }
+  button {
+    font-family: inherit;
+    font-size: 13px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text);
+  }
+  button:hover { background: #eef2f7; }
+  button.primary { background: var(--brand); color: white; border-color: var(--brand); }
+  button.primary:hover { background: var(--brand-dark); }
+  button.danger { color: var(--danger); border-color: var(--danger); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+  #editor {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100%;
+  }
+  #preview-section {
+    flex: 0 0 auto;
+    height: 380px;
+    min-height: 160px;
+    padding: 16px 20px;
+    overflow: auto;
+    background: #eef1f5;
+  }
+  #steps-section {
+    flex: 1 1 auto;
+    min-height: 140px;
+    padding: 16px 20px;
+    overflow: auto;
+    background: var(--panel);
+  }
+  #resizer {
+    flex: 0 0 auto;
+    height: 7px;
+    cursor: row-resize;
+    background: var(--border);
+    position: relative;
+  }
+  #resizer::after {
+    content: "";
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 36px; height: 3px;
+    border-radius: 2px;
+    background: var(--text-muted);
+    opacity: 0.6;
+  }
+  #resizer:hover, #resizer.active { background: var(--brand); }
+  h3 { font-size: 13px; color: var(--text-muted); margin: 0 0 10px; font-weight: 600; }
+
+  #canvas-wrap {
+    background: #d9dee5;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: auto;
+    max-height: calc(100% - 70px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  #preview-canvas { display: block; }
+  #preview-placeholder {
+    padding: 40px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  #dropzone {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 18px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 12px;
+    background: #fafbfc;
+  }
+  #dropzone.dragover { border-color: var(--brand); background: #eaf1fa; color: var(--brand-dark); }
+
+  #step-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  #step-list li {
+    width: 150px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    background: var(--panel);
+    cursor: grab;
+    position: relative;
+  }
+  #step-list li.dragging { opacity: 0.4; }
+  #step-list li img {
+    width: 100%;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 4px;
+    background: #000;
+    display: block;
+  }
+  #step-list li .badge-num {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: var(--brand);
+    color: white;
+    font-size: 11px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #step-list li .caption-text {
+    font-size: 11px;
+    margin-top: 6px;
+    color: var(--text-muted);
+    max-height: 44px;
+    overflow: hidden;
+  }
+  #step-list li .step-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+  }
+  #step-list li .step-actions button { padding: 3px 6px; font-size: 11px; }
+
+  .empty-hint {
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 12px 0;
+  }
+
+  #reorder-hint {
+    display: none;
+    font-size: 12px;
+    color: var(--brand-dark);
+    background: #eaf1fa;
+    border: 1px solid #cfe0f2;
+    border-radius: 6px;
+    padding: 7px 10px;
+    margin: 8px 0 12px;
+  }
+  #reorder-hint.visible { display: block; }
+
+  /* --- モーダル --- */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(20,26,34,0.45);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 50;
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal {
+    background: var(--panel);
+    border-radius: 10px;
+    padding: 22px;
+    width: 420px;
+    max-width: 92vw;
+    max-height: 88vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  }
+  .modal h2 { font-size: 15px; margin: 0 0 16px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
+  .field input[type=text], .field input[type=number], .field select, .field textarea {
+    width: 100%;
+    padding: 8px 9px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .field textarea { min-height: 120px; resize: vertical; }
+  .radio-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; }
+  .radio-row input[type=number] { width: 70px; padding: 5px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+  .count-label { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+  .count-label.over { color: var(--danger); }
+
+  /* --- プロジェクト右クリックメニュー --- */
+  #project-context-menu {
+    position: fixed;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+    padding: 4px;
+    min-width: 150px;
+    z-index: 100;
+  }
+  #project-context-menu.hidden { display: none; }
+  #project-context-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: none;
+    padding: 8px 10px;
+    border-radius: 4px;
+    background: none;
+  }
+  #project-context-menu button:hover { background: #eef2f7; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>StepShot Web</h1>
+  <span class="badge">ローカルテスト版・未公開</span>
+  <a id="help-link" href="help.html" target="_blank" title="使い方ガイドを開く">❓ ヘルプ</a>
+</header>
+
+<div id="app">
+  <aside id="sidebar">
+    <h2>プロジェクト一覧</h2>
+    <ul id="project-list"></ul>
+    <div class="btn-row">
+      <button class="primary" id="btn-new-project">新規プロジェクト</button>
+    </div>
+    <div class="btn-row">
+      <button id="btn-edit-settings" disabled>設定を編集</button>
+      <button class="danger" id="btn-delete-project" disabled>削除</button>
+    </div>
+  </aside>
+
+  <div id="editor">
+    <section id="preview-section">
+      <h3>プレビュー（実寸表示・スクロールで確認）</h3>
+      <div id="canvas-wrap">
+        <div id="preview-placeholder">プレビュー更新を押すと表示されます</div>
+        <canvas id="preview-canvas" style="display:none;"></canvas>
+      </div>
+      <div class="btn-row">
+        <button id="btn-refresh-preview" disabled>プレビュー更新</button>
+        <button id="btn-open-preview-window" disabled>別画面でプレビュー</button>
+        <button id="btn-export-png" disabled>PNGとして書き出す</button>
+        <button id="btn-open-drive" disabled>Google Driveを開く</button>
+      </div>
+    </section>
+
+    <div id="resizer" title="ドラッグして高さを変更"></div>
+
+    <section id="steps-section">
+      <h3>画像選択</h3>
+      <div id="dropzone">ここに画像ファイルをドラッグ&ドロップ、またはクリックしてファイル選択</div>
+      <input type="file" id="file-input" accept="image/*" multiple style="display:none;">
+      <div id="char-limit-label" class="count-label"></div>
+      <div id="reorder-hint">🔀 サムネイルをドラッグ&ドロップすると並び替えできます。並べた順番がそのまま手順の順番になります。</div>
+      <ul id="step-list"></ul>
+      <div id="steps-empty-hint" class="empty-hint">プロジェクトを選択してください</div>
+    </section>
+  </div>
+</div>
+
+<div id="project-context-menu" class="hidden">
+  <button id="ctx-rename">名前を変更</button>
+</div>
+
+<!-- 新規/編集プロジェクト モーダル -->
+<div class="modal-overlay hidden" id="project-modal-overlay">
+  <div class="modal">
+    <h2 id="project-modal-title">新規プロジェクト</h2>
+    <div class="field">
+      <label>タイトル</label>
+      <input type="text" id="pm-title" placeholder="例: 換気扇フィルター交換手順">
+    </div>
+    <div class="field">
+      <label>レイアウト</label>
+      <div class="radio-row">
+        <input type="radio" name="pm-layout" value="single_column" id="pm-layout-single">
+        <label for="pm-layout-single" style="margin:0;">縦一列</label>
+      </div>
+      <div class="radio-row">
+        <input type="radio" name="pm-layout" value="fixed_columns" id="pm-layout-fixed">
+        <label for="pm-layout-fixed" style="margin:0;">列数指定</label>
+        <input type="number" id="pm-columns" min="2" max="10" value="2">
+      </div>
+      <div class="radio-row">
+        <input type="radio" name="pm-layout" value="auto" id="pm-layout-auto" checked>
+        <label for="pm-layout-auto" style="margin:0;">自動調整（正方形に近い列数を自動計算）</label>
+      </div>
+    </div>
+    <div class="field">
+      <label>出力最大幅 (px)</label>
+      <input type="number" id="pm-max-width" min="400" max="4000" step="100" value="1200">
+    </div>
+    <div class="field">
+      <label>よく使う解像度から選択</label>
+      <select id="pm-resolution-preset"></select>
+    </div>
+    <div class="modal-actions">
+      <button id="pm-cancel">Cancel</button>
+      <button class="primary" id="pm-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- 説明文編集 モーダル -->
+<div class="modal-overlay hidden" id="caption-modal-overlay">
+  <div class="modal">
+    <h2>説明文の編集</h2>
+    <div class="field">
+      <label id="caption-info-label">説明文を入力してください</label>
+      <textarea id="caption-textarea"></textarea>
+    </div>
+    <div id="caption-count-label" class="count-label"></div>
+    <div class="modal-actions">
+      <button id="cm-cancel">Cancel</button>
+      <button class="primary" id="cm-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   StepShot Web（ローカルテスト版）
+   デスクトップ版（PySide6）と同じレイアウト計算・グリッド合成ロジックを
+   ブラウザ用に移植したもの。サーバー不要、IndexedDBとCanvasのみで動作する。
+   ========================================================= */
+
+/* ---------- 定数（デスクトップ版 core/config.py と同じ値） ---------- */
+const CELL_ASPECT = 4 / 3;
+const MARGIN = 12;
+const CAPTION_HEIGHT = 70;
+const TITLE_HEIGHT = 90;
+const CAPTION_FONT_SIZE = 13;
+const CAPTION_LINES = 3;
+const CAPTION_H_PADDING = 16;
+
+const LAYOUT_SINGLE_COLUMN = "single_column";
+const LAYOUT_FIXED_COLUMNS = "fixed_columns";
+const LAYOUT_AUTO = "auto";
+
+const CIRCLED_NUMBERS = Array.from({length: 20}, (_, i) => String.fromCodePoint(0x2460 + i));
+
+// デスクトップ版と同じプリセット一覧（見出し行は selectable:false）
+const RESOLUTION_PRESET_ROWS = [
+  { label: "カスタム（下の数値を直接指定）", width: null, selectable: true },
+  { label: "── 画面解像度 ──", width: null, selectable: false },
+  { label: "HD（1366×768）", width: 1366, selectable: true },
+  { label: "フルHD / FHD（1920×1080）", width: 1920, selectable: true },
+  { label: "WUXGA（1920×1200）", width: 1920, selectable: true },
+  { label: "QHD（2560×1440）", width: 2560, selectable: true },
+  { label: "4K / UHD（3840×2160）", width: 3840, selectable: true },
+  { label: "── note / SNS 投稿サイズ ──", width: null, selectable: false },
+  { label: "noteアイキャッチ推奨（1280px）", width: 1280, selectable: true },
+  { label: "Instagram正方形投稿（1080px）", width: 1080, selectable: true },
+  { label: "Instagramポートレート投稿（1080px）", width: 1080, selectable: true },
+  { label: "Instagramストーリーズ（1080px）", width: 1080, selectable: true },
+  { label: "X（Twitter）投稿画像（1200px）", width: 1200, selectable: true },
+  { label: "YouTubeサムネイル（1280px）", width: 1280, selectable: true },
+  { label: "Facebook投稿画像（1200px）", width: 1200, selectable: true },
+];
+
+/* ---------- レイアウト計算（core/grid_layout.py の移植） ---------- */
+function resolveColumns(layoutMode, stepCount, fixedColumns) {
+  const n = Math.max(1, stepCount);
+  if (layoutMode === LAYOUT_SINGLE_COLUMN) return 1;
+  if (layoutMode === LAYOUT_FIXED_COLUMNS) return Math.max(1, fixedColumns);
+  // auto: columns = round(sqrt(stepCount))
+  return Math.max(1, Math.round(Math.sqrt(n)));
+}
+
+function captionCharLimit(cellWidth) {
+  const availableWidth = cellWidth - CAPTION_H_PADDING;
+  const charsPerLine = Math.floor(availableWidth / CAPTION_FONT_SIZE);
+  return Math.max(0, charsPerLine * CAPTION_LINES);
+}
+
+function calculateLayout(stepCount, maxWidth, layoutMode, fixedColumns) {
+  const n = Math.max(1, stepCount);
+  const columns = resolveColumns(layoutMode, n, fixedColumns);
+
+  let cellWidth = (maxWidth - MARGIN * (columns + 1)) / columns;
+  if (cellWidth <= 0) cellWidth = 10;
+
+  const imageHeight = cellWidth / CELL_ASPECT;
+  const cellHeight = imageHeight + CAPTION_HEIGHT;
+  const rows = Math.ceil(n / columns);
+  const totalWidth = maxWidth;
+  const totalHeight = TITLE_HEIGHT + MARGIN + rows * (cellHeight + MARGIN);
+
+  return {
+    columns, rows,
+    cellWidth: Math.round(cellWidth),
+    cellHeight: Math.round(cellHeight),
+    imageHeight: Math.round(imageHeight),
+    totalWidth: Math.round(totalWidth),
+    totalHeight: Math.round(totalHeight),
+    charLimit: captionCharLimit(cellWidth),
+  };
+}
+
+function labelText(indexZeroBased) {
+  if (indexZeroBased < 20) return CIRCLED_NUMBERS[indexZeroBased];
+  return (indexZeroBased + 1) + ".";
+}
+
+/* ---------- IndexedDB ラッパー ---------- */
+const DB_NAME = "StepShotWebDB";
+const DB_VERSION = 1;
+let dbPromise = null;
+
+function openDB() {
+  if (dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains("projects")) {
+        db.createObjectStore("projects", { keyPath: "id", autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains("steps")) {
+        const stepsStore = db.createObjectStore("steps", { keyPath: "id", autoIncrement: true });
+        stepsStore.createIndex("projectId", "projectId", { unique: false });
+      }
+    };
+    req.onsuccess = (e) => resolve(e.target.result);
+    req.onerror = (e) => reject(e.target.error);
+  });
+  return dbPromise;
+}
+
+function tx(storeNames, mode) {
+  return openDB().then(db => db.transaction(storeNames, mode));
+}
+
+function reqToPromise(req) {
+  return new Promise((resolve, reject) => {
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function dbGetAll(storeName) {
+  const t = await tx([storeName], "readonly");
+  return reqToPromise(t.objectStore(storeName).getAll());
+}
+
+async function dbAdd(storeName, obj) {
+  const t = await tx([storeName], "readwrite");
+  const id = await reqToPromise(t.objectStore(storeName).add(obj));
+  return id;
+}
+
+async function dbPut(storeName, obj) {
+  const t = await tx([storeName], "readwrite");
+  return reqToPromise(t.objectStore(storeName).put(obj));
+}
+
+async function dbDelete(storeName, id) {
+  const t = await tx([storeName], "readwrite");
+  return reqToPromise(t.objectStore(storeName).delete(id));
+}
+
+async function dbGetStepsByProject(projectId) {
+  const all = await dbGetAll("steps");
+  return all.filter(s => s.projectId === projectId).sort((a, b) => a.orderIndex - b.orderIndex);
+}
+
+/* ---------- アプリ状態 ---------- */
+let projects = [];
+let currentProject = null;   // {id, title, layoutMode, columns, maxWidth, createdAt, updatedAt}
+let currentSteps = [];       // [{id, projectId, imageBlob, caption, orderIndex}]
+let lastExportedFilename = null;
+let dragSrcIndex = null;
+
+/* ---------- DOM参照 ---------- */
+const $ = (id) => document.getElementById(id);
+const projectListEl = $("project-list");
+const stepListEl = $("step-list");
+const stepsEmptyHint = $("steps-empty-hint");
+const dropzone = $("dropzone");
+const fileInput = $("file-input");
+const canvas = $("preview-canvas");
+const previewPlaceholder = $("preview-placeholder");
+const charLimitLabel = $("char-limit-label");
+const reorderHint = $("reorder-hint");
+
+const btnNewProject = $("btn-new-project");
+const btnEditSettings = $("btn-edit-settings");
+const btnDeleteProject = $("btn-delete-project");
+const btnRefreshPreview = $("btn-refresh-preview");
+const btnOpenPreviewWindow = $("btn-open-preview-window");
+const btnExportPng = $("btn-export-png");
+const btnOpenDrive = $("btn-open-drive");
+
+/* ---------- プロジェクト一覧の描画 ---------- */
+async function reloadProjectList(selectId) {
+  projects = await dbGetAll("projects");
+  projects.sort((a, b) => b.updatedAt - a.updatedAt);
+  projectListEl.innerHTML = "";
+  let toSelect = null;
+  for (const p of projects) {
+    const li = document.createElement("li");
+    li.textContent = p.title;
+    li.dataset.id = p.id;
+    if (currentProject && p.id === currentProject.id) li.classList.add("active");
+    li.addEventListener("click", () => loadProject(p.id));
+    li.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      openProjectContextMenu(e, p.id);
+    });
+    projectListEl.appendChild(li);
+    if (selectId !== undefined && p.id === selectId) toSelect = p.id;
+  }
+  if (toSelect !== null) {
+    await loadProject(toSelect);
+  } else if (!currentProject && projects.length > 0) {
+    await loadProject(projects[0].id);
+  } else if (projects.length === 0) {
+    await loadProject(null);
+  }
+}
+
+/* ---------- プロジェクトの読み込み ---------- */
+async function loadProject(projectId) {
+  if (projectId === null) {
+    currentProject = null;
+    currentSteps = [];
+    renderStepList();
+    updateButtonsForNoProject();
+    return;
+  }
+  currentProject = projects.find(p => p.id === projectId) || (await dbGetAll("projects")).find(p => p.id === projectId);
+  currentSteps = await dbGetStepsByProject(projectId);
+  renderProjectListActiveState();
+  renderStepList();
+  updateButtonsForProject();
+  showPreviewPlaceholder("プレビュー更新を押すと表示されます");
+}
+
+function renderProjectListActiveState() {
+  [...projectListEl.children].forEach(li => {
+    li.classList.toggle("active", currentProject && Number(li.dataset.id) === currentProject.id);
+  });
+}
+
+function updateButtonsForNoProject() {
+  btnEditSettings.disabled = true;
+  btnDeleteProject.disabled = true;
+  btnRefreshPreview.disabled = true;
+  btnOpenPreviewWindow.disabled = true;
+  btnExportPng.disabled = true;
+  btnOpenDrive.disabled = true;
+  stepsEmptyHint.style.display = "block";
+  stepsEmptyHint.textContent = "プロジェクトを選択してください";
+  stepListEl.style.display = "none";
+  charLimitLabel.textContent = "";
+  reorderHint.classList.remove("visible");
+}
+
+function updateButtonsForProject() {
+  btnEditSettings.disabled = false;
+  btnDeleteProject.disabled = false;
+  btnRefreshPreview.disabled = false;
+  btnOpenPreviewWindow.disabled = false;
+  btnExportPng.disabled = false;
+  stepsEmptyHint.style.display = currentSteps.length ? "none" : "block";
+  stepsEmptyHint.textContent = "画像がありません。ドラッグ&ドロップまたはクリックで追加してください。";
+  stepListEl.style.display = currentSteps.length ? "flex" : "none";
+  updateCharLimitLabel();
+}
+
+/* ---------- ステップ一覧の描画 ---------- */
+function renderStepList() {
+  stepListEl.innerHTML = "";
+  currentSteps.forEach((step, idx) => {
+    const li = document.createElement("li");
+    li.draggable = true;
+    li.dataset.index = idx;
+
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(step.imageBlob);
+    li.appendChild(img);
+
+    const badge = document.createElement("div");
+    badge.className = "badge-num";
+    badge.textContent = idx + 1;
+    li.appendChild(badge);
+
+    const caption = document.createElement("div");
+    caption.className = "caption-text";
+    caption.textContent = step.caption || "(説明文なし)";
+    li.appendChild(caption);
+
+    const actions = document.createElement("div");
+    actions.className = "step-actions";
+    const editBtn = document.createElement("button");
+    editBtn.textContent = "編集";
+    editBtn.addEventListener("click", (e) => { e.stopPropagation(); openCaptionModal(step); });
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "削除";
+    delBtn.className = "danger";
+    delBtn.addEventListener("click", (e) => { e.stopPropagation(); deleteStep(step); });
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+    li.appendChild(actions);
+
+    // 並び替え（HTML5 Drag & Drop）
+    li.addEventListener("dragstart", () => {
+      dragSrcIndex = idx;
+      li.classList.add("dragging");
+    });
+    li.addEventListener("dragend", () => li.classList.remove("dragging"));
+    li.addEventListener("dragover", (e) => e.preventDefault());
+    li.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const targetIndex = idx;
+      if (dragSrcIndex === null || dragSrcIndex === targetIndex) return;
+      reorderSteps(dragSrcIndex, targetIndex);
+    });
+
+    stepListEl.appendChild(li);
+  });
+  if (currentProject) {
+    stepsEmptyHint.style.display = currentSteps.length ? "none" : "block";
+    stepListEl.style.display = currentSteps.length ? "flex" : "none";
+  }
+  reorderHint.classList.toggle("visible", currentSteps.length >= 2);
+  updateCharLimitLabel();
+}
+
+async function reorderSteps(fromIndex, toIndex) {
+  const arr = currentSteps.slice();
+  const [moved] = arr.splice(fromIndex, 1);
+  arr.splice(toIndex, 0, moved);
+  currentSteps = arr;
+  for (let i = 0; i < currentSteps.length; i++) {
+    currentSteps[i].orderIndex = i;
+    await dbPut("steps", currentSteps[i]);
+  }
+  await touchProject();
+  renderStepList();
+}
+
+/* ---------- 説明文の文字数目安 ---------- */
+function currentCharLimit() {
+  if (!currentProject) return 0;
+  const stepCount = Math.max(1, currentSteps.length);
+  const layout = calculateLayout(stepCount, currentProject.maxWidth, currentProject.layoutMode, currentProject.columns);
+  return layout.charLimit;
+}
+
+function updateCharLimitLabel() {
+  if (!currentProject) { charLimitLabel.textContent = ""; return; }
+  const limit = currentCharLimit();
+  charLimitLabel.textContent = `説明文の目安文字数: あと${limit}文字まで入力できます`;
+}
+
+/* ---------- 画像追加（ファイル選択／ドラッグ&ドロップ共通） ---------- */
+function requireProjectOrWarn() {
+  if (currentProject) return true;
+  alert("先にプロジェクトを作成してください。\n「新規プロジェクト」ボタンを押し、プロジェクト名を入力してから画像を追加できます。");
+  return false;
+}
+
+async function addFilesToProject(fileList) {
+  if (!requireProjectOrWarn()) return;
+  const files = Array.from(fileList).filter(f => f.type.startsWith("image/"));
+  if (files.length === 0) return;
+
+  let nextIndex = currentSteps.length;
+  for (const file of files) {
+    const step = {
+      projectId: currentProject.id,
+      imageBlob: file,
+      caption: "",
+      orderIndex: nextIndex++,
+    };
+    const id = await dbAdd("steps", step);
+    step.id = id;
+    currentSteps.push(step);
+  }
+  await touchProject();
+  renderStepList();
+}
+
+dropzone.addEventListener("click", () => {
+  if (!requireProjectOrWarn()) return;
+  fileInput.click();
+});
+fileInput.addEventListener("change", (e) => {
+  addFilesToProject(e.target.files);
+  fileInput.value = "";
+});
+dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("dragover"); });
+dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+dropzone.addEventListener("drop", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  dropzone.classList.remove("dragover");
+  addFilesToProject(e.dataTransfer.files);
+});
+
+// ページ全体をドロップ対象にする。
+// デスクトップ版はステップ一覧全体が広くドロップを受け付ける作りだったため、
+// Web版でも「ここに置いてください」の小さな枠の外に落としてもきちんと反応するようにし、
+// かつブラウザの既定動作（ドロップした画像がページとして開いてしまう）を防ぐ。
+document.addEventListener("dragover", (e) => { e.preventDefault(); });
+document.addEventListener("drop", (e) => {
+  // dropzone自身で処理済みの場合は二重処理しない
+  if (e.defaultPrevented) return;
+  e.preventDefault();
+  if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    addFilesToProject(e.dataTransfer.files);
+  }
+});
+
+async function deleteStep(step) {
+  await dbDelete("steps", step.id);
+  currentSteps = currentSteps.filter(s => s.id !== step.id);
+  currentSteps.forEach((s, i) => { s.orderIndex = i; });
+  for (const s of currentSteps) await dbPut("steps", s);
+  await touchProject();
+  renderStepList();
+}
+
+async function touchProject() {
+  if (!currentProject) return;
+  currentProject.updatedAt = Date.now();
+  await dbPut("projects", currentProject);
+}
+
+/* ---------- 説明文編集モーダル ---------- */
+let captionEditingStep = null;
+const captionModalOverlay = $("caption-modal-overlay");
+const captionTextarea = $("caption-textarea");
+const captionInfoLabel = $("caption-info-label");
+const captionCountLabel = $("caption-count-label");
+
+function openCaptionModal(step) {
+  captionEditingStep = step;
+  const limit = currentCharLimit();
+  captionInfoLabel.textContent = `説明文を入力してください（目安: ${limit}文字まで、3行を超える分は省略されます）`;
+  captionTextarea.value = step.caption || "";
+  updateCaptionCountLabel(limit);
+  captionModalOverlay.classList.remove("hidden");
+  captionTextarea.focus();
+}
+
+function updateCaptionCountLabel(limit) {
+  const len = captionTextarea.value.length;
+  if (limit > 0) {
+    const remaining = limit - len;
+    if (remaining >= 0) {
+      captionCountLabel.textContent = `${len} 文字（あと${remaining}文字まで収まります）`;
+      captionCountLabel.classList.remove("over");
+    } else {
+      captionCountLabel.textContent = `${len} 文字（目安を${-remaining}文字超えています。超過分は省略記号になります）`;
+      captionCountLabel.classList.add("over");
+    }
+  } else {
+    captionCountLabel.textContent = `${len} 文字`;
+    captionCountLabel.classList.remove("over");
+  }
+}
+
+captionTextarea.addEventListener("input", () => updateCaptionCountLabel(currentCharLimit()));
+$("cm-cancel").addEventListener("click", () => captionModalOverlay.classList.add("hidden"));
+$("cm-ok").addEventListener("click", async () => {
+  if (!captionEditingStep) return;
+  captionEditingStep.caption = captionTextarea.value;
+  await dbPut("steps", captionEditingStep);
+  captionModalOverlay.classList.add("hidden");
+  renderStepList();
+});
+
+/* ---------- 新規/編集プロジェクト モーダル ---------- */
+const projectModalOverlay = $("project-modal-overlay");
+const projectModalTitle = $("project-modal-title");
+const pmTitle = $("pm-title");
+const pmColumns = $("pm-columns");
+const pmMaxWidth = $("pm-max-width");
+const pmResolutionPreset = $("pm-resolution-preset");
+let projectModalMode = "new"; // "new" | "edit"
+
+function buildResolutionPresetOptions() {
+  pmResolutionPreset.innerHTML = "";
+  RESOLUTION_PRESET_ROWS.forEach((row, i) => {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = row.label;
+    if (!row.selectable) opt.disabled = true;
+    pmResolutionPreset.appendChild(opt);
+  });
+}
+buildResolutionPresetOptions();
+
+pmResolutionPreset.addEventListener("change", () => {
+  const row = RESOLUTION_PRESET_ROWS[Number(pmResolutionPreset.value)];
+  if (row && row.width !== null) {
+    pmMaxWidth.value = row.width;
+  }
+});
+pmMaxWidth.addEventListener("input", () => {
+  const val = Number(pmMaxWidth.value);
+  const idx = RESOLUTION_PRESET_ROWS.findIndex(r => r.selectable && r.width === val);
+  pmResolutionPreset.value = idx >= 0 ? idx : 0;
+});
+
+function currentLayoutModeFromForm() {
+  const checked = document.querySelector('input[name="pm-layout"]:checked');
+  return checked ? checked.value : LAYOUT_AUTO;
+}
+
+function updatePmColumnsEnabled() {
+  pmColumns.disabled = !$("pm-layout-fixed").checked;
+}
+document.querySelectorAll('input[name="pm-layout"]').forEach(r => {
+  r.addEventListener("change", updatePmColumnsEnabled);
+});
+
+function openNewProjectModal() {
+  projectModalMode = "new";
+  projectModalTitle.textContent = "新規プロジェクト";
+  pmTitle.value = "";
+  $("pm-layout-auto").checked = true;
+  pmColumns.value = 2;
+  pmMaxWidth.value = 1200;
+  pmResolutionPreset.value = 0;
+  updatePmColumnsEnabled();
+  projectModalOverlay.classList.remove("hidden");
+  pmTitle.focus();
+}
+
+function openEditProjectModal() {
+  if (!currentProject) return;
+  projectModalMode = "edit";
+  projectModalTitle.textContent = "プロジェクト設定の編集";
+  pmTitle.value = currentProject.title;
+  if (currentProject.layoutMode === LAYOUT_SINGLE_COLUMN) $("pm-layout-single").checked = true;
+  else if (currentProject.layoutMode === LAYOUT_FIXED_COLUMNS) $("pm-layout-fixed").checked = true;
+  else $("pm-layout-auto").checked = true;
+  pmColumns.value = currentProject.columns;
+  pmMaxWidth.value = currentProject.maxWidth;
+  const idx = RESOLUTION_PRESET_ROWS.findIndex(r => r.selectable && r.width === currentProject.maxWidth);
+  pmResolutionPreset.value = idx >= 0 ? idx : 0;
+  updatePmColumnsEnabled();
+  projectModalOverlay.classList.remove("hidden");
+  pmTitle.focus();
+}
+
+$("pm-cancel").addEventListener("click", () => projectModalOverlay.classList.add("hidden"));
+$("pm-ok").addEventListener("click", async () => {
+  const title = pmTitle.value.trim() || "無題のプロジェクト";
+  const layoutMode = currentLayoutModeFromForm();
+  const columns = Math.max(2, Number(pmColumns.value) || 2);
+  const maxWidth = Math.max(400, Number(pmMaxWidth.value) || 1200);
+  const now = Date.now();
+
+  if (projectModalMode === "new") {
+    const project = { title, layoutMode, columns, maxWidth, createdAt: now, updatedAt: now };
+    const id = await dbAdd("projects", project);
+    project.id = id;
+    projectModalOverlay.classList.add("hidden");
+    await reloadProjectList(id);
+  } else {
+    currentProject.title = title;
+    currentProject.layoutMode = layoutMode;
+    currentProject.columns = columns;
+    currentProject.maxWidth = maxWidth;
+    currentProject.updatedAt = now;
+    await dbPut("projects", currentProject);
+    projectModalOverlay.classList.add("hidden");
+    await reloadProjectList(currentProject.id);
+    showPreviewPlaceholder("設定を変更しました。プレビュー更新を押してください");
+  }
+});
+
+btnNewProject.addEventListener("click", openNewProjectModal);
+btnEditSettings.addEventListener("click", openEditProjectModal);
+btnDeleteProject.addEventListener("click", async () => {
+  if (!currentProject) return;
+  if (!confirm("このプロジェクトを削除します。よろしいですか？（画像データも削除されます）")) return;
+  const stepsToDelete = await dbGetStepsByProject(currentProject.id);
+  for (const s of stepsToDelete) await dbDelete("steps", s.id);
+  await dbDelete("projects", currentProject.id);
+  currentProject = null;
+  await reloadProjectList();
+});
+
+/* ---------- プレビュー・書き出し ---------- */
+function showPreviewPlaceholder(text) {
+  previewPlaceholder.textContent = text;
+  previewPlaceholder.style.display = "block";
+  canvas.style.display = "none";
+}
+
+function loadImageFromBlob(blob) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => { resolve(img); };
+    img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+    img.src = url;
+  });
+}
+
+function wrapCaption(ctx, text, maxWidth, maxLines) {
+  if (!text) return [];
+  const lines = [];
+  let current = "";
+  for (const ch of text) {
+    const trial = current + ch;
+    if (ctx.measureText(trial).width <= maxWidth) {
+      current = trial;
+    } else {
+      lines.push(current);
+      current = ch;
+      if (lines.length >= maxLines) break;
+    }
+  }
+  if (current && lines.length < maxLines) lines.push(current);
+  if (lines.length > maxLines) lines.length = maxLines;
+
+  const consumed = lines.reduce((sum, l) => sum + l.length, 0);
+  if (consumed < text.length && lines.length > 0) {
+    let last = lines[lines.length - 1];
+    while (last.length > 0 && ctx.measureText(last + "…").width > maxWidth) {
+      last = last.slice(0, -1);
+    }
+    lines[lines.length - 1] = last + "…";
+  }
+  return lines;
+}
+
+async function composeGridImage() {
+  const project = currentProject;
+  const steps = currentSteps;
+  if (!project || steps.length === 0) {
+    throw new Error("ステップが1つもありません。先に画像を追加してください。");
+  }
+
+  const layout = calculateLayout(steps.length, project.maxWidth, project.layoutMode, project.columns);
+  canvas.width = layout.totalWidth;
+  canvas.height = layout.totalHeight;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // タイトル
+  if (project.title) {
+    ctx.fillStyle = "#141414";
+    ctx.font = "bold 28px -apple-system, 'Noto Sans JP', sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(project.title, layout.totalWidth / 2, TITLE_HEIGHT / 2 + 6);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
+
+  for (let idx = 0; idx < steps.length; idx++) {
+    const step = steps[idx];
+    const col = idx % layout.columns;
+    const row = Math.floor(idx / layout.columns);
+    const cellX = MARGIN + col * (layout.cellWidth + MARGIN);
+    const cellY = TITLE_HEIGHT + MARGIN + row * (layout.cellHeight + MARGIN);
+
+    // 画像（レターボックス）
+    let img;
+    try {
+      img = await loadImageFromBlob(step.imageBlob);
+    } catch (e) {
+      img = null;
+    }
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(cellX, cellY, layout.cellWidth, layout.imageHeight);
+    if (img) {
+      const scale = Math.min(layout.cellWidth / img.width, layout.imageHeight / img.height);
+      const newW = Math.max(1, Math.round(img.width * scale));
+      const newH = Math.max(1, Math.round(img.height * scale));
+      const offsetX = cellX + Math.floor((layout.cellWidth - newW) / 2);
+      const offsetY = cellY + Math.floor((layout.imageHeight - newH) / 2);
+      ctx.drawImage(img, offsetX, offsetY, newW, newH);
+    }
+
+    // 丸数字ラベル
+    const label = labelText(idx);
+    ctx.font = "bold 16px -apple-system, 'Noto Sans JP', sans-serif";
+    const badgeR = 16;
+    const badgeCx = cellX + 6 + badgeR;
+    const badgeCy = cellY + 6 + badgeR;
+    ctx.beginPath();
+    ctx.arc(badgeCx, badgeCy, badgeR, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#282828";
+    ctx.stroke();
+    ctx.fillStyle = "#141414";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, badgeCx, badgeCy + 1);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+
+    // 説明文（最大3行、省略記号対応）
+    const captionY = cellY + layout.imageHeight + 4;
+    const captionAreaWidth = layout.cellWidth - 16;
+    ctx.font = `${CAPTION_FONT_SIZE}px -apple-system, 'Noto Sans JP', sans-serif`;
+    ctx.fillStyle = "#1e1e1e";
+    const lines = wrapCaption(ctx, step.caption || "", captionAreaWidth, 3);
+    const lineHeight = CAPTION_FONT_SIZE + 4;
+    lines.forEach((line, i) => {
+      ctx.fillText(line, cellX + 8, captionY + i * lineHeight + CAPTION_FONT_SIZE);
+    });
+  }
+
+  return layout;
+}
+
+btnRefreshPreview.addEventListener("click", async () => {
+  try {
+    await composeGridImage();
+    previewPlaceholder.style.display = "none";
+    canvas.style.display = "block";
+  } catch (e) {
+    alert(e.message);
+  }
+});
+
+// 直前に開いたプレビュー用Blob URL（再度開いた時に古い方を解放するために保持）
+let lastPreviewWindowUrl = null;
+
+btnOpenPreviewWindow.addEventListener("click", async () => {
+  try {
+    await composeGridImage();
+  } catch (e) {
+    alert(e.message);
+    return;
+  }
+  previewPlaceholder.style.display = "none";
+  canvas.style.display = "block";
+
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    if (lastPreviewWindowUrl) {
+      URL.revokeObjectURL(lastPreviewWindowUrl);
+      lastPreviewWindowUrl = null;
+    }
+    const url = URL.createObjectURL(blob);
+    lastPreviewWindowUrl = url;
+
+    const win = window.open("", "_blank", "width=1100,height=850");
+    if (!win) {
+      alert("新しいタブを開けませんでした。ブラウザのポップアップブロック設定を確認してください。");
+      URL.revokeObjectURL(url);
+      lastPreviewWindowUrl = null;
+      return;
+    }
+
+    const projectTitle = currentProject ? currentProject.title : "プレビュー";
+    win.document.title = projectTitle + " - StepShot プレビュー";
+
+    const doc = win.document;
+    doc.body.style.margin = "0";
+    doc.body.style.background = "#1c2430";
+    doc.body.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif";
+
+    // 上部の閉じるボタン付きバー
+    const bar = doc.createElement("div");
+    bar.style.cssText =
+      "position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;" +
+      "padding:10px 16px;background:rgba(0,0,0,0.4);color:#fff;z-index:1;";
+
+    const label = doc.createElement("span");
+    label.textContent = projectTitle;
+    label.style.cssText = "font-size:13px;opacity:0.85;";
+    bar.appendChild(label);
+
+    const closeBtn = doc.createElement("button");
+    closeBtn.textContent = "✕ 閉じる";
+    closeBtn.style.cssText =
+      "font-size:13px;padding:6px 14px;border-radius:6px;border:1px solid rgba(255,255,255,0.35);" +
+      "background:rgba(255,255,255,0.12);color:#fff;cursor:pointer;";
+    closeBtn.addEventListener("mouseenter", () => { closeBtn.style.background = "rgba(255,255,255,0.25)"; });
+    closeBtn.addEventListener("mouseleave", () => { closeBtn.style.background = "rgba(255,255,255,0.12)"; });
+    closeBtn.addEventListener("click", () => win.close());
+    bar.appendChild(closeBtn);
+
+    doc.body.appendChild(bar);
+
+    // 画像本体（実寸表示、はみ出す分はスクロール）
+    const wrap = doc.createElement("div");
+    wrap.style.cssText = "display:flex;justify-content:center;padding:24px;overflow:auto;";
+    const img = doc.createElement("img");
+    img.src = url;
+    img.style.cssText = "max-width:none;box-shadow:0 4px 24px rgba(0,0,0,0.5);";
+    wrap.appendChild(img);
+    doc.body.appendChild(wrap);
+
+    // ウィンドウが閉じられたらBlob URLを解放する
+    win.addEventListener("pagehide", () => {
+      URL.revokeObjectURL(url);
+      if (lastPreviewWindowUrl === url) lastPreviewWindowUrl = null;
+    });
+  }, "image/png");
+});
+
+btnExportPng.addEventListener("click", async () => {
+  try {
+    await composeGridImage();
+  } catch (e) {
+    alert(e.message);
+    return;
+  }
+  canvas.toBlob((blob) => {
+    const filename = `${currentProject.title}.png`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    lastExportedFilename = filename;
+    btnOpenDrive.disabled = false;
+    previewPlaceholder.style.display = "none";
+    canvas.style.display = "block";
+    alert(`書き出しが完了しました:\nダウンロードフォルダの ${filename} を確認してください。`);
+  }, "image/png");
+});
+
+btnOpenDrive.addEventListener("click", () => {
+  window.open("https://drive.google.com/drive/my-drive", "_blank");
+  alert(
+    "ブラウザでGoogle Driveを開きました。\n" +
+    `先ほどダウンロードした「${lastExportedFilename || "PNGファイル"}」を、` +
+    "Google Driveのウィンドウにドラッグ&ドロップしてアップロードしてください。"
+  );
+});
+
+/* ---------- プロジェクトの右クリックメニュー（名前を変更） ---------- */
+const contextMenu = $("project-context-menu");
+let contextMenuProjectId = null;
+
+function openProjectContextMenu(mouseEvent, projectId) {
+  contextMenuProjectId = projectId;
+  contextMenu.classList.remove("hidden");
+  const menuWidth = 160;
+  const menuHeight = 44;
+  let x = mouseEvent.clientX;
+  let y = mouseEvent.clientY;
+  if (x + menuWidth > window.innerWidth) x = window.innerWidth - menuWidth - 8;
+  if (y + menuHeight > window.innerHeight) y = window.innerHeight - menuHeight - 8;
+  contextMenu.style.left = x + "px";
+  contextMenu.style.top = y + "px";
+}
+
+function closeProjectContextMenu() {
+  contextMenu.classList.add("hidden");
+  contextMenuProjectId = null;
+}
+
+document.addEventListener("click", (e) => {
+  if (!contextMenu.contains(e.target)) closeProjectContextMenu();
+});
+document.addEventListener("contextmenu", (e) => {
+  // プロジェクト一覧の項目以外を右クリックした場合はメニューを閉じる
+  if (!e.target.closest("#project-list li")) closeProjectContextMenu();
+});
+
+$("ctx-rename").addEventListener("click", async () => {
+  const projectId = contextMenuProjectId;
+  closeProjectContextMenu();
+  if (projectId === null) return;
+  const target = projects.find(p => p.id === projectId);
+  if (!target) return;
+  const newTitle = prompt("新しいプロジェクト名を入力してください", target.title);
+  if (newTitle === null) return; // キャンセル
+  const trimmed = newTitle.trim();
+  if (!trimmed) return;
+  target.title = trimmed;
+  target.updatedAt = Date.now();
+  await dbPut("projects", target);
+  if (currentProject && currentProject.id === projectId) {
+    currentProject.title = trimmed;
+  }
+  await reloadProjectList(currentProject ? currentProject.id : projectId);
+});
+
+/* ---------- プレビュー枠の高さリサイズ ---------- */
+const resizer = $("resizer");
+const previewSection = $("preview-section");
+const editorEl = $("editor");
+let resizingPreview = false;
+
+resizer.addEventListener("mousedown", (e) => {
+  resizingPreview = true;
+  resizer.classList.add("active");
+  document.body.style.cursor = "row-resize";
+  document.body.style.userSelect = "none";
+  e.preventDefault();
+});
+
+document.addEventListener("mousemove", (e) => {
+  if (!resizingPreview) return;
+  const editorRect = editorEl.getBoundingClientRect();
+  const resizerHeight = resizer.getBoundingClientRect().height;
+  const minPreview = 160;
+  const minSteps = 140;
+  let newHeight = e.clientY - editorRect.top;
+  const maxPreview = editorRect.height - resizerHeight - minSteps;
+  newHeight = Math.max(minPreview, Math.min(maxPreview, newHeight));
+  previewSection.style.height = newHeight + "px";
+});
+
+document.addEventListener("mouseup", () => {
+  if (!resizingPreview) return;
+  resizingPreview = false;
+  resizer.classList.remove("active");
+  document.body.style.cursor = "";
+  document.body.style.userSelect = "";
+});
+
+/* ---------- 初期化 ---------- */
+(async function init() {
+  await reloadProjectList();
+})();
+</script>
+
+<div id="app-footer">Created by Turioji ・ <a href="https://github.com/turioji" target="_blank">GitHub</a> ・ © 2026</div>
+
+</body>
+</html>

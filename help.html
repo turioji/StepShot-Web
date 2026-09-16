@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>使い方ガイド - StepShot Web</title>
+<style>
+  :root {
+    --brand: #2962a8;
+    --brand-dark: #1f4d84;
+    --bg: #fbfaf7;
+    --text: #20242b;
+    --text-muted: #5b6472;
+    --accent: #e8a33d;
+    --accent-bg: #fdf3e3;
+    --border: #e3e0d8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN",
+                 "Noto Sans JP", sans-serif;
+    line-height: 1.75;
+  }
+  a { color: var(--brand); }
+
+  .topbar {
+    background: var(--brand);
+    color: white;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .topbar a {
+    color: white;
+    text-decoration: none;
+    font-size: 13px;
+    background: rgba(255,255,255,0.16);
+    padding: 5px 12px;
+    border-radius: 6px;
+  }
+  .topbar a:hover { background: rgba(255,255,255,0.28); }
+  .topbar span { font-weight: 600; font-size: 15px; }
+
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  .hero {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+  .hero .icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 18px;
+    border-radius: 18px;
+    background: var(--brand);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 5px;
+    padding: 9px;
+  }
+  .hero .icon div { background: rgba(255,255,255,0.85); border-radius: 4px; }
+  .hero h1 {
+    font-size: 26px;
+    margin: 0 0 10px;
+    letter-spacing: 0.02em;
+  }
+  .hero p {
+    color: var(--text-muted);
+    font-size: 15px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  section.step {
+    margin-bottom: 52px;
+  }
+  section.step .step-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  section.step .num {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  section.step h2 {
+    font-size: 19px;
+    margin: 0;
+  }
+  section.step p {
+    font-size: 15px;
+    margin: 0 0 16px;
+  }
+  section.step img {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    box-shadow: 0 6px 18px rgba(30,40,60,0.08);
+    display: block;
+  }
+  section.step .caption {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-top: 8px;
+  }
+
+  .tip {
+    background: var(--accent-bg);
+    border: 1px solid #f0dcb0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    margin-top: 14px;
+  }
+  .tip strong { color: #a06a0f; }
+
+  hr.divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 56px 0;
+  }
+
+  .faq h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+  .faq-item { margin-bottom: 24px; }
+  .faq-item .q {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+  .faq-item .a {
+    font-size: 14.5px;
+    color: var(--text-muted);
+  }
+
+  footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12.5px;
+    padding: 30px 0 50px;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html">← アプリに戻る</a>
+  <span>使い方ガイド</span>
+</div>
+
+<main>
+  <div class="hero">
+    <div class="icon"><div></div><div></div><div></div><div></div></div>
+    <h1>StepShot Webの使い方</h1>
+    <p>
+      手順ごとの写真を1枚のグリッド画像にまとめるツールです。
+      むずかしい設定は特になく、6つのステップで手順書が完成します。
+    </p>
+  </div>
+
+  <section class="step">
+    <div class="step-head">
+      <div class="num">1</div>
+      <h2>プロジェクトを作る</h2>
+    </div>
+    <p>
+      左下の「新規プロジェクト」ボタンから始めます。タイトルと、写真をどう並べるか
+      （縦一列・列数指定・自動調整）、出力する画像の最大幅を決めます。
+      迷ったら「自動調整」のままでも大丈夫です。あとから「設定を編集」でいつでも変更できます。
+    </p>
+    <img src="assets/01-new-project.png" alt="新規プロジェクト作成ダイアログ">
+    <div class="caption">タイトルを入力し、レイアウトと出力サイズを選ぶ画面</div>
+    <div class="tip">
+      <strong>ヒント:</strong> 出力最大幅は「よく使う解像度から選択」のプルダウンから、
+      note投稿用やInstagram投稿用などの定番サイズをそのまま選べます。
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <div class="num">2</div>
+      <h2>画像を追加する</h2>
+    </div>
+    <p>
+      「ここに画像ファイルをドラッグ&ドロップ、またはクリックしてファイル選択」の枠に、
+      パソコン内の写真をまとめて追加します。フォルダから複数選んでもいいですし、
+      エクスプローラー（ファイルマネージャー）から直接ドラッグしても構いません。
+      選んだ順番、またはドロップした順番がそのままステップの順番になります。
+    </p>
+    <img src="assets/02-add-images.png" alt="画像を追加した直後の画面">
+    <div class="caption">4枚の画像を追加した状態。まだ説明文は入力していない</div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <div class="num">3</div>
+      <h2>並び替える</h2>
+    </div>
+    <p>
+      サムネイルをつかんでドラッグすると、その場で順番を入れ替えられます。
+      画像が2枚以上あると、一覧のすぐ上に並び替えのヒントが表示されます。
+    </p>
+    <img src="assets/04-reorder-hint.png" alt="並び替えのヒントが表示された画像一覧">
+    <div class="caption">水色の吹き出しが並び替えの案内。並べた順番がそのまま手順の順番になる</div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <div class="num">4</div>
+      <h2>説明文を入力する</h2>
+    </div>
+    <p>
+      各サムネイルの「編集」ボタンから、その手順の説明文を入力します。
+      入力中はリアルタイムで文字数が表示され、目安を超えると赤字で警告されます。
+      3行を超える分は、書き出し時に自動で省略記号（…）に切り詰められます。
+    </p>
+    <img src="assets/03-caption-edit.png" alt="説明文編集ダイアログ">
+    <div class="caption">文字数と、あと何文字収まるかがリアルタイムで表示される</div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <div class="num">5</div>
+      <h2>プレビューを確認する</h2>
+    </div>
+    <p>
+      「プレビュー更新」を押すと、実際に書き出されるグリッド画像がその場に表示されます。
+      大きい画像は枠の中でスクロールして確認できます。
+    </p>
+    <img src="assets/05-preview.png" alt="プレビュー表示画面">
+    <div class="caption">左上の丸数字ラベルと、下段の説明文が反映された状態</div>
+
+    <p style="margin-top:24px;">
+      画面が小さくて見づらいときは、「別画面でプレビュー」を押してください。
+      新しいタブでブラウザ標準の画像ビューアが開き、実寸大の画像を自由に
+      ズームイン/アウトしながら確認できます。アプリ本体の画面はそのまま残るので、
+      並べて見比べながら説明文を調整するのにも便利です。
+    </p>
+    <img src="assets/08-preview-window-tab.png" alt="別画面（新しいタブ）で開いたプレビュー">
+    <div class="caption">「別画面でプレビュー」を押すと開く、新しいタブでの表示例</div>
+    <div class="tip">
+      <strong>ヒント:</strong> このタブは画像を表示しているだけの独立したタブなので、
+      閉じてもプロジェクトのデータには影響しません。何度でも開き直せます。
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <div class="num">6</div>
+      <h2>書き出す・共有する</h2>
+    </div>
+    <p>
+      「PNGとして書き出す」を押すと、ブラウザのダウンロード機能で画像がパソコンに保存されます
+      （通常はダウンロードフォルダに入ります）。Google Driveにアップロードしたい場合は、
+      書き出し後に「Google Driveを開く」を押すとDriveが新しいタブで開くので、
+      ダウンロードしたファイルをそこにドラッグ&ドロップしてください。
+    </p>
+    <div class="tip">
+      <strong>その他の便利機能:</strong> プロジェクト一覧の項目を右クリックすると、
+      あとからプロジェクト名を変更できます。
+    </div>
+    <img src="assets/06-rename-menu.png" alt="プロジェクト名を右クリックで変更するメニュー">
+    <div class="caption">プロジェクト名を右クリックすると出てくる「名前を変更」メニュー</div>
+  </section>
+
+  <hr class="divider">
+
+  <div class="faq">
+    <h2>よくある質問</h2>
+
+    <div class="faq-item">
+      <div class="q">作ったプロジェクトはどこに保存されますか？</div>
+      <div class="a">
+        ブラウザの中（IndexedDBという保存領域）に自動的に保存されます。ファイルとして
+        目に見える場所に置かれるわけではないので、特別な操作は必要ありません。
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="q">保存したデータが消えることはありますか？</div>
+      <div class="a">
+        ブラウザの設定で「Cookieと他のサイトデータ」を削除すると、このサイトの
+        プロジェクトも一緒に消えてしまいます。閲覧履歴だけを消す操作では消えません。
+        シークレットモード（プライベートブラウジング）で使った場合は、タブを閉じると
+        自動的に消えます。
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="q">スマホでも使えますか？</div>
+      <div class="a">
+        現時点ではPCでの利用を想定した画面構成になっています。スマホでの手順書作成には、
+        カメラ撮影にも対応したモバイルアプリ版をご利用ください。
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="q">写真をアップロードすると、どこかのサーバーに送られますか？</div>
+      <div class="a">
+        送られません。画像の読み込み・グリッド合成・保存は、すべてお使いのブラウザの中だけで
+        完結します（サーバーを使わない設計です）。
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  StepShot Web（ローカルテスト版）<br>
+  Created by Turioji ・ <a href="https://github.com/turioji" target="_blank">GitHub</a> ・ © 2026
+</footer>
+
+</body>
+</html>
