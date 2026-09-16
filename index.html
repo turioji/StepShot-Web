@@ -440,6 +440,7 @@ const TITLE_HEIGHT = 90;
 const CAPTION_FONT_SIZE = 13;
 const CAPTION_LINES = 3;
 const CAPTION_H_PADDING = 16;
+const CREDIT_HEIGHT = 24;  // 下部の「Created with StepShot」クレジット欄の高さ
 
 const LAYOUT_SINGLE_COLUMN = "single_column";
 const LAYOUT_FIXED_COLUMNS = "fixed_columns";
@@ -492,7 +493,7 @@ function calculateLayout(stepCount, maxWidth, layoutMode, fixedColumns) {
   const cellHeight = imageHeight + CAPTION_HEIGHT;
   const rows = Math.ceil(n / columns);
   const totalWidth = maxWidth;
-  const totalHeight = TITLE_HEIGHT + MARGIN + rows * (cellHeight + MARGIN);
+  const totalHeight = TITLE_HEIGHT + MARGIN + rows * (cellHeight + MARGIN) + CREDIT_HEIGHT;
 
   return {
     columns, rows,
@@ -1121,6 +1122,15 @@ async function composeGridImage() {
       ctx.fillText(line, cellX + 8, captionY + i * lineHeight + CAPTION_FONT_SIZE);
     });
   }
+
+  // 下部に小さくクレジットを入れる（SNS等でシェアされた際の導線用）
+  ctx.font = "11px -apple-system, 'Noto Sans JP', sans-serif";
+  ctx.fillStyle = "#9aa3ad";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "bottom";
+  ctx.fillText("Created with StepShot", layout.totalWidth - 10, layout.totalHeight - 6);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
 
   return layout;
 }
