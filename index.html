@@ -341,9 +341,128 @@
   }
   #project-context-menu button:hover { background: #eef2f7; }
 
+  /* --- ウェルカムモーダル --- */
+  #welcome-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+  }
+  #welcome-overlay.hidden { display: none; }
+  #welcome-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 40px 44px 36px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    text-align: center;
+  }
+  #welcome-box .wicon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    border-radius: 16px;
+    background: var(--brand);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 5px;
+    padding: 9px;
+  }
+  #welcome-box .wicon div { background: rgba(255,255,255,0.85); border-radius: 4px; }
+  #welcome-box h2 {
+    font-size: 22px;
+    margin: 0 0 6px;
+    color: var(--text);
+  }
+  #welcome-box .tagline {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0 0 24px;
+  }
+  #welcome-box ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 28px;
+    text-align: left;
+  }
+  #welcome-box ul li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  #welcome-box ul li:last-child { border-bottom: none; }
+  #welcome-box ul li .step-num {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #welcome-start-btn {
+    width: 100%;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 600;
+    background: var(--brand);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  #welcome-start-btn:hover { background: var(--brand-dark); }
+  #welcome-box .note {
+    font-size: 12px;
+    color: var(--text);
+    margin-top: 12px;
+  }
+
 </style>
 </head>
 <body>
+
+<div id="welcome-overlay" class="hidden">
+  <div id="welcome-box">
+    <div class="wicon"><div></div><div></div><div></div><div></div></div>
+    <h2>StepShot Web へようこそ</h2>
+    <p class="tagline">写真を並べるだけで手順書ができる、無料のブラウザツールです。</p>
+    <ul>
+      <li>
+        <div class="step-num">1</div>
+        <div>「新規プロジェクト」を作成して、タイトルとレイアウトを決めます。</div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div>写真をドラッグ&ドロップ（またはクリックして選択）で追加します。</div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div>並び替えや説明文の追加ができます。サムネイルをドラッグして順番を変えられます。</div>
+      </li>
+      <li>
+        <div class="step-num">4</div>
+        <div>「プレビュー更新」で確認して、「PNGとして書き出す」で完成です。</div>
+      </li>
+    </ul>
+    <button id="welcome-start-btn">さっそく使う</button>
+    <p class="note">このガイドは「❓ ヘルプ」からいつでも確認できます。</p>
+  </div>
+</div>
 
 <header>
   <h1>StepShot Web</h1>
@@ -1373,6 +1492,33 @@ document.addEventListener("mouseup", () => {
 (async function init() {
   await reloadProjectList();
 })();
+
+/* ---------- ウェルカムモーダル ---------- */
+const welcomeOverlay = $("welcome-overlay");
+const welcomeStartBtn = $("welcome-start-btn");
+const WELCOME_KEY = "stepshot_welcomed";
+
+function closeWelcome() {
+  welcomeOverlay.classList.add("hidden");
+  try { localStorage.setItem(WELCOME_KEY, "1"); } catch(e) {}
+}
+
+welcomeStartBtn.addEventListener("click", closeWelcome);
+
+// オーバーレイ外クリックでも閉じる
+welcomeOverlay.addEventListener("click", (e) => {
+  if (e.target === welcomeOverlay) closeWelcome();
+});
+
+// 初回訪問時のみ表示（localStorageにフラグがなければ表示）
+try {
+  if (!localStorage.getItem(WELCOME_KEY)) {
+    welcomeOverlay.classList.remove("hidden");
+  }
+} catch(e) {
+  // localStorageが使えない環境（file://等）では毎回表示
+  welcomeOverlay.classList.remove("hidden");
+}
 </script>
 
 <div id="app-footer">Created by Turioji ・ <a href="https://github.com/turioji" target="_blank">GitHub</a> ・ © 2026</div>
