@@ -67,8 +67,7 @@
     padding: 2px 8px;
     border-radius: 10px;
   }
-  #help-link, #feedback-link {
-    color: white;
+  #help-link, #feedback-link {    color: white;
     text-decoration: none;
     font-size: 13px;
     background: rgba(255,255,255,0.16);
@@ -77,6 +76,11 @@
   }
   #help-link { margin-left: auto; }
   #help-link:hover, #feedback-link:hover { background: rgba(255,255,255,0.28); }
+  #header-tagline {
+    font-size: 13px;
+    color: rgba(255,255,255,0.88);
+    white-space: nowrap;
+  }
 
   #app-footer {
     position: fixed;
@@ -339,6 +343,7 @@
 <header>
   <h1>StepShot Web</h1>
   <span class="badge">β版</span>
+  <span id="header-tagline">写真を並べるだけで手順書ができる！</span>
   <a id="help-link" href="help.html" target="_blank" title="使い方ガイドを開く">❓ ヘルプ</a>
   <a id="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLSfvHpuJvhgtmxIAOrep2zepF_PsKZt0j3Hftq7s_5QeZTshmw/viewform?usp=publish-editor" target="_blank" title="ご意見・不具合報告はこちら">💬 フィードバック</a>
 </header>
