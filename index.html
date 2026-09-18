@@ -59,6 +59,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    position: relative;
   }
   header h1 { font-size: 17px; margin: 0; font-weight: 600; }
   header .badge {
@@ -77,9 +78,13 @@
   #help-link { margin-left: auto; }
   #help-link:hover, #feedback-link:hover { background: rgba(255,255,255,0.28); }
   #header-tagline {
-    font-size: 13px;
-    color: rgba(255,255,255,0.88);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 15px;
+    color: rgba(255,255,255,0.95);
     white-space: nowrap;
+    pointer-events: none;
   }
 
   #app-footer {
